@@ -39,6 +39,7 @@
 - Python 3.10+
 - Docker & Docker Compose
 - Git
+- Dify 实例（本地部署或云端实例）
 
 ### 1. 克隆项目
 
@@ -46,7 +47,45 @@
 cd d:\Desktop\amz-auto-ai
 ```
 
-### 2. 启动数据库服务
+### 2. 配置 Dify
+
+#### 前端配置
+
+创建 `frontend/.env` 文件：
+
+```env
+NEXT_PUBLIC_DIFY_URL=http://localhost:3000
+```
+
+#### 后端配置
+
+在 `backend/app/config.py` 中配置 Dify API 信息：
+
+```python
+# Dify 配置
+dify_api_key: str = "your-dify-api-key"  # Dify API 密钥
+dify_api_url: str = "http://localhost:3000/v1"  # Dify API 地址
+dify_frontend_url: str = "http://localhost:3000"  # Dify 前端地址
+```
+
+**Dify 部署方式：**
+
+1. **本地部署 Docker 版**（推荐用于开发）
+   ```bash
+   # 访问 https://docs.dify.ai/guides/workflow
+   # 按照官方文档使用 Docker 部署 Dify
+   ```
+
+2. **使用 Dify Cloud**
+   - 注册账号：https://cloud.dify.ai/
+   - 在设置中获取 API Key
+   - 将 `NEXT_PUBLIC_DIFY_URL` 设置为 `https://cloud.dify.ai`
+
+3. **使用 Dify 官方 Demo**
+   - Dify 提供在线演示环境
+   - 适合快速体验功能
+
+### 3. 启动数据库服务
 
 ```bash
 docker-compose up -d

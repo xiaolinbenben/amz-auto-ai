@@ -1,62 +1,97 @@
 @echo off
-chcp 936 >nul
+chcp 65001 >nul
 echo ========================================
-echo AMZ Auto AI - 项目启动脚本
+echo AMZ Auto AI - Project Startup Script
 echo ========================================
 echo.
 
-echo [1/4] 启动数据库服务 (PostgreSQL + Redis)...
+REM Get script directory
+set SCRIPT_DIR=%~dp0
+cd /d "%SCRIPT_DIR%"
+
+echo [1/5] Starting database services (PostgreSQL + Redis)...
 docker-compose up -d
 if %errorlevel% neq 0 (
-    echo 错误: Docker Compose 启动失败
+    echo ERROR: Docker Compose startup failed
     pause
     exit /b 1
 )
-echo ? 数据库服务已启动
+echo [OK] Database services started
 echo.
 
-echo [2/4] 启动后端服务...
+echo [2/5] Starting Dify services...
+cd dify\docker
+docker compose -p amz-auto-ai up -d
+if %errorlevel% neq 0 (
+    echo ERROR: Dify Docker Compose startup failed
+    pause
+    exit /b 1
+)
+echo [OK] Dify services started (UI: http://localhost:3001)
+echo Connecting Dify to amz-network...
+docker network connect amz-auto-ai-amz-network amz-auto-ai-api 2>nul
+docker network connect amz-auto-ai-amz-network amz-auto-ai-worker 2>nul
+docker network connect amz-auto-ai-amz-network amz-auto-ai-worker-beat 2>nul
+docker network connect amz-auto-ai-amz-network amz-auto-ai-web 2>nul
+docker network connect amz-auto-ai-amz-network amz-auto-ai-nginx 2>nul
+docker network connect amz-auto-ai-amz-network amz-auto-ai-redis 2>nul
+echo [OK] Dify connected to amz-network
+cd /d "%SCRIPT_DIR%"
+echo.
+
+echo [3/5] Starting backend service...
 cd backend
 if not exist "venv" (
-    echo 创建虚拟环境...
+    echo Creating virtual environment...
     python -m venv venv
 )
 call venv\Scripts\activate
-echo 安装依赖...
+echo Installing dependencies...
 pip install -r requirements.txt -q
-echo 启动后端服务 (端口 8000)...
-start "Backend Server" cmd /k "cd %CD% && venv\Scripts\activate && python run.py"
-cd ..
-echo ? 后端服务已启动
+echo Starting backend server (port 8000)...
+start "Backend Server" cmd /k "cd /d "%SCRIPT_DIR%backend" && venv\Scripts\activate && python run.py"
+cd /d "%SCRIPT_DIR%"
+echo [OK] Backend server started
 echo.
 
-echo [3/4] 启动前端服务...
+echo [4/5] Starting frontend service...
 cd frontend
 if not exist "node_modules" (
-    echo 安装依赖...
+    echo Installing dependencies...
     call npm install
 )
-echo 启动前端服务 (端口 3000)...
-start "Frontend Server" cmd /k "cd %CD% && npm run dev"
-cd ..
-echo ? 前端服务已启动
+echo Starting frontend server (port 3000)...
+start "Frontend Server" cmd /k "cd /d "%SCRIPT_DIR%frontend" && npm run dev"
+cd /d "%SCRIPT_DIR%"
+echo [OK] Frontend server started
 echo.
 
-echo [4/4] 等待服务就绪...
+echo [5/5] Waiting for services to be ready...
 echo.
 echo ========================================
-echo ? 所有服务已启动！
+echo [OK] All services are running
 echo ========================================
 echo.
-echo 前端地址: http://localhost:3000
-echo 后端 API: http://localhost:8000
-echo API 文档: http://localhost:8000/docs
-echo 数据库:   PostgreSQL (端口 5433)
-echo 缓存:     Redis (端口 6379)
+echo Frontend: http://localhost:3000
+echo Backend:  http://localhost:8000
+echo API Docs: http://localhost:8000/docs
+echo Dify UI:  http://localhost:3001
+echo Dify API: http://localhost:5001
+echo Database: PostgreSQL (port 5433)
+echo Cache:    Redis (port 6379)
 echo.
-echo 按 Ctrl+C 可以停止所有服务
+echo Press Ctrl+C to stop all services
 echo.
 
 pause
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-api 2>nul
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-worker 2>nul
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-worker-beat 2>nul
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-web 2>nul
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-nginx 2>nul
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-redis 2>nul
+cd dify\docker
+docker compose -p amz-auto-ai down
+cd /d "%SCRIPT_DIR%"
 docker-compose down
-echo 所有服务已停止
+echo All services stopped

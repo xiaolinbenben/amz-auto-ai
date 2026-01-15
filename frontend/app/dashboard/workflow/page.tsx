@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { MagicCard } from '@/components/magic/MagicCard'
 import { AnimatedButton } from '@/components/magic/AnimatedButton'
 import { motion } from 'framer-motion'
-import { Plus, Play, Pause, Settings, Trash2, ChevronRight, Edit, Workflow as WorkflowIcon } from 'lucide-react'
+import { Plus, Settings, ChevronRight, Edit, Workflow as WorkflowIcon, ExternalLink, RefreshCw } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,96 +13,92 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-interface Workflow {
+interface DifyApp {
   id: string
   name: string
   description: string
-  status: 'active' | 'inactive' | 'running'
-  lastRun: string
-  createdAt: string
-  nodeCount: number
+  mode: string
+  created_at: string
+  updated_at: string
 }
 
 export default function WorkflowListPage() {
   const router = useRouter()
-  const [workflows, setWorkflows] = useState<Workflow[]>([
-    {
-      id: '1',
-      name: 'Amazon 商品信息抓取',
-      description: '从 Amazon 抓取商品信息并生成优化建议',
-      status: 'active',
-      lastRun: '10 分钟前',
-      createdAt: '2026-01-15',
-      nodeCount: 5,
-    },
-    {
-      id: '2',
-      name: 'Listing 优化生成',
-      description: '基于抓取数据生成优化的标题和 Bullet Points',
-      status: 'inactive',
-      lastRun: '1 小时前',
-      createdAt: '2026-01-14',
-      nodeCount: 8,
-    },
-    {
-      id: '3',
-      name: '关键词分析工作流',
-      description: '分析商品关键词并生成优化建议',
-      status: 'running',
-      lastRun: '30 分钟前',
-      createdAt: '2026-01-13',
-      nodeCount: 6,
-    },
-  ])
+  const [apps, setApps] = useState<DifyApp[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const getStatusColor = (status: Workflow['status']) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-      case 'running':
+  useEffect(() => {
+    fetchDifyApps()
+  }, [])
+
+  const fetchDifyApps = async () => {
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('http://localhost:8000/api/dify/apps', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setApps(data.data || [])
+      } else {
+        console.error('获取 Dify 应用失败')
+        // 模拟数据用于展示
+        setApps([])
+      }
+    } catch (error) {
+      console.error('获取 Dify 应用失败:', error)
+      setApps([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleOpenDify = (appId: string) => {
+    // 在新标签页打开 Dify 工作流编辑器
+    const difyUrl = process.env.NEXT_PUBLIC_DIFY_URL || 'http://localhost:3000'
+    window.open(`${difyUrl}/app/${appId}/workflow`, '_blank')
+  }
+
+  const handleCreateApp = () => {
+    // 在新标签页打开 Dify 创建页面
+    const difyUrl = process.env.NEXT_PUBLIC_DIFY_URL || 'http://localhost:3000'
+    window.open(`${difyUrl}/apps`, '_blank')
+  }
+
+  const handleOpenDifyHome = () => {
+    const difyUrl = process.env.NEXT_PUBLIC_DIFY_URL || 'http://localhost:3000'
+    window.open(difyUrl, '_blank')
+  }
+
+  const getModeBadge = (mode: string) => {
+    switch (mode) {
+      case 'workflow':
         return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-      case 'inactive':
-        return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+      case 'chatbot':
+        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+      case 'advanced-chat':
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
       default:
         return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
     }
   }
 
-  const getStatusText = (status: Workflow['status']) => {
-    switch (status) {
-      case 'active':
-        return '活跃'
-      case 'running':
-        return '运行中'
-      case 'inactive':
-        return '已停止'
+  const getModeText = (mode: string) => {
+    switch (mode) {
+      case 'workflow':
+        return '工作流'
+      case 'chatbot':
+        return '聊天机器人'
+      case 'advanced-chat':
+        return '高级聊天'
       default:
-        return '未知'
+        return mode
     }
-  }
-
-  const handleEditWorkflow = (id: string) => {
-    router.push(`/dashboard/workflow/${id}`)
-  }
-
-  const handleCreateWorkflow = () => {
-    // 创建新工作流后跳转到编辑器
-    const newId = `${Date.now()}`
-    router.push(`/dashboard/workflow/${newId}`)
-  }
-
-  const handleDeleteWorkflow = (id: string) => {
-    if (confirm('确定要删除这个工作流吗？')) {
-      setWorkflows(workflows.filter(w => w.id !== id))
-    }
-  }
-
-  const handleToggleStatus = (id: string) => {
-    setWorkflows(workflows.map(w =>
-      w.id === id
-        ? { ...w, status: w.status === 'active' ? 'inactive' : 'active' }
-        : w
-    ))
   }
 
   return (
@@ -111,28 +107,36 @@ export default function WorkflowListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            工作流管理
+            Dify 工作流管理
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            管理和配置您的 AI 工作流
+            管理您的 Dify AI 应用和工作流
           </p>
         </div>
-        <AnimatedButton
-          className="bg-gradient-to-r from-blue-600 to-purple-600"
-          onClick={handleCreateWorkflow}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          新建工作流
-        </AnimatedButton>
+        <div className="flex items-center space-x-2">
+          <AnimatedButton
+            variant="outline"
+            onClick={fetchDifyApps}
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            刷新
+          </AnimatedButton>
+          <AnimatedButton
+            className="bg-gradient-to-r from-blue-600 to-purple-600"
+            onClick={handleCreateApp}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            在 Dify 中创建
+          </AnimatedButton>
+        </div>
       </div>
 
-      {/* 工作流统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Dify 统计卡片 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { label: '总工作流', value: workflows.length, icon: WorkflowIcon, color: 'from-blue-500 to-cyan-500' },
-          { label: '运行中', value: workflows.filter(w => w.status === 'running').length, icon: Play, color: 'from-green-500 to-emerald-500' },
-          { label: '活跃', value: workflows.filter(w => w.status === 'active').length, icon: WorkflowIcon, color: 'from-purple-500 to-pink-500' },
-          { label: '已停止', value: workflows.filter(w => w.status === 'inactive').length, icon: Pause, color: 'from-gray-500 to-slate-500' },
+          { label: '总应用数', value: apps.length, icon: WorkflowIcon, color: 'from-blue-500 to-cyan-500' },
+          { label: '工作流应用', value: apps.filter(a => a.mode === 'workflow').length, icon: WorkflowIcon, color: 'from-purple-500 to-pink-500' },
+          { label: '聊天应用', value: apps.filter(a => a.mode === 'chatbot' || a.mode === 'advanced-chat').length, icon: WorkflowIcon, color: 'from-green-500 to-emerald-500' },
         ].map((stat, index) => (
           <MagicCard
             key={stat.label}
@@ -154,118 +158,124 @@ export default function WorkflowListPage() {
         ))}
       </div>
 
-      {/* 工作流列表 */}
+      {/* 应用列表 */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold flex items-center">
-          <WorkflowIcon className="mr-2 h-5 w-5" />
-          工作流列表 ({workflows.length})
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {workflows.map((workflow, index) => (
-            <MagicCard
-              key={workflow.id}
-              delay={index * 0.1}
-              className="group p-6 hover:shadow-2xl transition-all cursor-pointer"
-              onClick={() => handleEditWorkflow(workflow.id)}
-            >
-              {/* 卡片头部 */}
-              <div className="flex items-start justify-between mb-4">
-                <div className={`text-xs px-3 py-1 rounded-full ${getStatusColor(workflow.status)}`}>
-                  {getStatusText(workflow.status)}
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                    >
-                      <Settings className="h-4 w-4 text-gray-500" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={(e) => {
-                      e.stopPropagation()
-                      handleEditWorkflow(workflow.id)
-                    }}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      编辑
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => {
-                      e.stopPropagation()
-                      handleToggleStatus(workflow.id)
-                    }}>
-                      {workflow.status === 'active' ? (
-                        <>
-                          <Pause className="mr-2 h-4 w-4" />
-                          停止
-                        </>
-                      ) : (
-                        <>
-                          <Play className="mr-2 h-4 w-4" />
-                          启动
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDeleteWorkflow(workflow.id)
-                      }}
-                      className="text-red-600"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      删除
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* 卡片内容 */}
-              <div className="space-y-3">
-                <h3 className="text-xl font-bold group-hover:text-blue-600 transition-colors">
-                  {workflow.name}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                  {workflow.description}
-                </p>
-
-                <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="flex items-center space-x-1">
-                    <WorkflowIcon className="h-4 w-4" />
-                    <span>{workflow.nodeCount} 个节点</span>
-                  </div>
-                  <div>•</div>
-                  <div>最后运行: {workflow.lastRun}</div>
-                </div>
-              </div>
-
-              {/* 卡片底部 */}
-              <div className="mt-4 pt-4 border-t flex items-center justify-between">
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  创建于 {workflow.createdAt}
-                </span>
-                <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
-              </div>
-            </MagicCard>
-          ))}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center">
+            <WorkflowIcon className="mr-2 h-5 w-5" />
+            Dify 应用列表 ({apps.length})
+          </h2>
         </div>
 
-        {/* 空状态 */}
-        {workflows.length === 0 && (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : apps.length === 0 ? (
           <MagicCard className="p-12 text-center">
             <WorkflowIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">暂无工作流</h3>
+            <h3 className="text-xl font-semibold mb-2">暂无 Dify 应用</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              创建您的第一个 AI 工作流开始使用
+              在 Dify 中创建您的第一个 AI 工作流应用
             </p>
-            <AnimatedButton onClick={handleCreateWorkflow}>
+            <AnimatedButton onClick={handleCreateApp}>
               <Plus className="mr-2 h-4 w-4" />
-              创建工作流
+              创建 Dify 应用
             </AnimatedButton>
           </MagicCard>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {apps.map((app, index) => (
+              <MagicCard
+                key={app.id}
+                delay={index * 0.1}
+                className="group p-6 hover:shadow-2xl transition-all cursor-pointer"
+                onClick={() => handleOpenDify(app.id)}
+              >
+                {/* 卡片头部 */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`text-xs px-3 py-1 rounded-full ${getModeBadge(app.mode)}`}>
+                    {getModeText(app.mode)}
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                      >
+                        <Settings className="h-4 w-4 text-gray-500" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation()
+                        handleOpenDify(app.id)
+                      }}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        在 Dify 中编辑
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation()
+                        const difyUrl = process.env.NEXT_PUBLIC_DIFY_URL || 'http://localhost:3000'
+                        window.open(`${difyUrl}/app/${app.id}/overview`, '_blank')
+                      }}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        应用配置
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* 卡片内容 */}
+                <div className="space-y-3">
+                  <h3 className="text-xl font-bold group-hover:text-blue-600 transition-colors">
+                    {app.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                    {app.description || '暂无描述'}
+                  </p>
+
+                  <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center space-x-1">
+                      <WorkflowIcon className="h-4 w-4" />
+                      <span>ID: {app.id.slice(0, 8)}...</span>
+                    </div>
+                    <div>•</div>
+                    <div>更新于 {new Date(app.updated_at).toLocaleDateString()}</div>
+                  </div>
+                </div>
+
+                {/* 卡片底部 */}
+                <div className="mt-4 pt-4 border-t flex items-center justify-between">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    创建于 {new Date(app.created_at).toLocaleDateString()}
+                  </span>
+                  <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                </div>
+              </MagicCard>
+            ))}
+          </div>
         )}
       </div>
+
+      {/* Dify 链接提示 */}
+      <MagicCard className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">直接访问 Dify</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              点击下方按钮打开 Dify 完整界面，在原生环境中管理所有工作流
+            </p>
+          </div>
+          <AnimatedButton
+            onClick={handleOpenDifyHome}
+            variant="outline"
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            打开 Dify
+          </AnimatedButton>
+        </div>
+      </MagicCard>
     </div>
   )
 }

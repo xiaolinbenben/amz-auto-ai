@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     redis_url: str
     dify_api_key: str
     dify_api_url: str
+    dify_app_id: str = ""
+    dify_frontend_url: str = "http://localhost:3001"
 
     class Config:
         env_file = ".env"

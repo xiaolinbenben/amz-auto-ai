@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, workflows
+from app.api import auth, workflows, dify
 from app.database import engine, Base
 
 app = FastAPI(title="AMZ Auto AI API", version="1.0.0")
@@ -21,6 +21,7 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(workflows.router, prefix="/api/workflows", tags=["workflows"])
+app.include_router(dify.router, prefix="/api", tags=["dify"])
 
 
 @app.on_event("startup")

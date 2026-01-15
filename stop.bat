@@ -1,42 +1,39 @@
-echo ========================================
-echo 停止 AMZ Auto AI 服务
-echo ========================================
-echo.
-
-echo 停止前端和后端服务...
-taskkill /f /im node.exe >nul 2>&1
-taskkill /f /im python.exe >nul 2>&1
-echo ? 应用服务已停止
-
-echo.
-echo 停止数据库服务...
-docker-compose down
-echo ? 数据库服务已停止
-
-echo.
-echo ========================================
-echo 所有服务已停止
-echo ========================================
-pause
 @echo off
-chcp 936 >nul
+chcp 65001 >nul
 echo ========================================
-echo 停止 AMZ Auto AI 服务
+echo Stopping AMZ Auto AI Services
 echo ========================================
 echo.
 
-echo 停止前端和后端服务...
+echo Stopping frontend and backend services...
 taskkill /f /im node.exe >nul 2>&1
 taskkill /f /im python.exe >nul 2>&1
-echo ? 应用服务已停止
+echo [OK] Application services stopped
 
 echo.
-echo 停止数据库服务...
+echo Disconnecting Dify network connections...
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-api 2>nul
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-worker 2>nul
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-worker-beat 2>nul
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-web 2>nul
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-nginx 2>nul
+docker network disconnect amz-auto-ai-amz-network amz-auto-ai-redis 2>nul
+echo [OK] Dify network disconnected
+
+echo.
+echo Stopping Dify services...
+cd dify\docker
+docker compose -p amz-auto-ai down
+cd ..
+echo [OK] Dify services stopped
+
+echo.
+echo Stopping database services...
 docker-compose down
-echo ? 数据库服务已停止
+echo [OK] Database services stopped
 
 echo.
 echo ========================================
-echo 所有服务已停止
+echo All services stopped
 echo ========================================
 pause
