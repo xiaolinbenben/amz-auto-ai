@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Sidebar from '@/components/Sidebar'
+import TopNav from '@/components/TopNav'
 
 export default function DashboardLayout({
   children,
@@ -19,9 +19,9 @@ export default function DashboardLayout({
   }, [router])
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <TopNav />
+      <main className="pt-16">
         {children}
       </main>
     </div>

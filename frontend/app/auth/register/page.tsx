@@ -7,11 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { MagicCard } from '@/components/magic/MagicCard'
+import { AnimatedButton } from '@/components/magic/AnimatedButton'
+import SlideVerify from '@/components/magic/SlideVerify'
 
 export default function RegisterPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [verified, setVerified] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -21,6 +24,11 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!verified) {
+      toast.error('请先完成滑动验证')
+      return
+    }
 
     if (formData.password !== formData.confirmPassword) {
       toast.error('两次输入的密码不一致')
@@ -55,6 +63,7 @@ export default function RegisterPage() {
         router.push('/auth/login')
       } else {
         toast.error(data.detail || '注册失败')
+        setVerified(false)
       }
     } catch (error) {
       toast.error('网络错误，请稍后重试')
@@ -66,7 +75,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="w-full max-w-md p-8">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 space-y-6">
+        <MagicCard className="p-8 space-y-6" delay={0.1}>
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               AMZ Auto AI
@@ -112,7 +121,7 @@ export default function RegisterPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="至少6位密码"
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
@@ -127,7 +136,7 @@ export default function RegisterPage() {
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="••••••••"
+                placeholder="再次输入密码"
                 value={formData.confirmPassword}
                 onChange={(e) =>
                   setFormData({ ...formData, confirmPassword: e.target.value })
@@ -137,20 +146,17 @@ export default function RegisterPage() {
               />
             </div>
 
-            <Button
+            <div className="space-y-2">
+              <SlideVerify onVerify={setVerified} />
+            </div>
+
+            <AnimatedButton
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
-              disabled={isLoading}
+              loading={isLoading}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  注册中...
-                </>
-              ) : (
-                '注册'
-              )}
-            </Button>
+              注册
+            </AnimatedButton>
           </form>
 
           <p className="text-center text-sm text-gray-600 dark:text-gray-400">
@@ -162,7 +168,7 @@ export default function RegisterPage() {
               立即登录
             </Link>
           </p>
-        </div>
+        </MagicCard>
       </div>
     </div>
   )
