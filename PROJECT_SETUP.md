@@ -8,10 +8,13 @@
 - **Next.js 14** - React 框架
 - **TypeScript** - 类型安全
 - **Tailwind CSS** - 样式框架
-- **Radix UI** - UI 组件库
-- **Framer Motion** - 动画效果 (Magic UI 风格)
+- **shadcn/ui** - 现代化 UI 组件库（基于 Radix UI）
+- **Magic UI** - 高级动画和交互组件
+- **Framer Motion** - 流畅的动画效果
+- **Radix UI** - 底层无头组件
 - **Axios** - HTTP 客户端
 - **Zustand** - 状态管理
+- **Lucide React** - 图标库
 
 ### 后端
 - **FastAPI** - 高性能 Python Web 框架
@@ -19,6 +22,14 @@
 - **PostgreSQL** - 关系型数据库
 - **Redis** - 缓存和会话管理
 - **Dify** - AI 工作流集成
+
+### UI 组件库
+- **shadcn/ui** - 提供可复用、可定制的 UI 组件
+  - Button、Card、Input、Label、Tabs、Textarea、Sheet、Dialog 等
+- **Magic UI** - 高级交互组件
+  - 动画效果、微交互、视觉增强组件
+- **class-variance-authority (CVA)** - 组件变体管理
+- **clsx & tailwind-merge** - 样式工具函数
 
 ## 🚀 快速开始
 
