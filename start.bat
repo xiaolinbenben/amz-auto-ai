@@ -1,61 +1,62 @@
 @echo off
+chcp 936 >nul
 echo ========================================
-echo AMZ Auto AI - é¡¹ç›®å¯åŠ¨è„šæœ¬
+echo AMZ Auto AI - ÏîÄ¿Æô¶¯½Å±¾
 echo ========================================
 echo.
 
-echo [1/4] å¯åŠ¨æ•°æ®åº“æœåŠ¡ (PostgreSQL + Redis)...
+echo [1/4] Æô¶¯Êı¾İ¿â·şÎñ (PostgreSQL + Redis)...
 docker-compose up -d
 if %errorlevel% neq 0 (
-    echo é”™è¯¯: Docker Compose å¯åŠ¨å¤±è´¥
+    echo ´íÎó: Docker Compose Æô¶¯Ê§°Ü
     pause
     exit /b 1
 )
-echo âœ… æ•°æ®åº“æœåŠ¡å·²å¯åŠ¨
+echo ? Êı¾İ¿â·şÎñÒÑÆô¶¯
 echo.
 
-echo [2/4] å¯åŠ¨åç«¯æœåŠ¡...
+echo [2/4] Æô¶¯ºó¶Ë·şÎñ...
 cd backend
 if not exist "venv" (
-    echo åˆ›å»ºè™šæ‹Ÿç¯å¢ƒ...
+    echo ´´½¨ĞéÄâ»·¾³...
     python -m venv venv
 )
 call venv\Scripts\activate
-echo å®‰è£…ä¾èµ–...
+echo °²×°ÒÀÀµ...
 pip install -r requirements.txt -q
-echo å¯åŠ¨åç«¯æœåŠ¡ (ç«¯å£ 8000)...
+echo Æô¶¯ºó¶Ë·şÎñ (¶Ë¿Ú 8000)...
 start "Backend Server" cmd /k "cd %CD% && venv\Scripts\activate && python run.py"
 cd ..
-echo âœ… åç«¯æœåŠ¡å·²å¯åŠ¨
+echo ? ºó¶Ë·şÎñÒÑÆô¶¯
 echo.
 
-echo [3/4] å¯åŠ¨å‰ç«¯æœåŠ¡...
+echo [3/4] Æô¶¯Ç°¶Ë·şÎñ...
 cd frontend
 if not exist "node_modules" (
-    echo å®‰è£…ä¾èµ–...
+    echo °²×°ÒÀÀµ...
     call npm install
 )
-echo å¯åŠ¨å‰ç«¯æœåŠ¡ (ç«¯å£ 3000)...
+echo Æô¶¯Ç°¶Ë·şÎñ (¶Ë¿Ú 3000)...
 start "Frontend Server" cmd /k "cd %CD% && npm run dev"
 cd ..
-echo âœ… å‰ç«¯æœåŠ¡å·²å¯åŠ¨
+echo ? Ç°¶Ë·şÎñÒÑÆô¶¯
 echo.
 
-echo [4/4] ç­‰å¾…æœåŠ¡å°±ç»ª...
+echo [4/4] µÈ´ı·şÎñ¾ÍĞ÷...
 echo.
 echo ========================================
-echo âœ… æ‰€æœ‰æœåŠ¡å·²å¯åŠ¨ï¼
+echo ? ËùÓĞ·şÎñÒÑÆô¶¯£¡
 echo ========================================
 echo.
-echo å‰ç«¯åœ°å€: http://localhost:3000
-echo åç«¯ API: http://localhost:8000
-echo API æ–‡æ¡£: http://localhost:8000/docs
-echo æ•°æ®åº“:   PostgreSQL (ç«¯å£ 5433)
-echo ç¼“å­˜:     Redis (ç«¯å£ 6379)
+echo Ç°¶ËµØÖ·: http://localhost:3000
+echo ºó¶Ë API: http://localhost:8000
+echo API ÎÄµµ: http://localhost:8000/docs
+echo Êı¾İ¿â:   PostgreSQL (¶Ë¿Ú 5433)
+echo »º´æ:     Redis (¶Ë¿Ú 6379)
 echo.
-echo æŒ‰ Ctrl+C å¯ä»¥åœæ­¢æ‰€æœ‰æœåŠ¡
+echo °´ Ctrl+C ¿ÉÒÔÍ£Ö¹ËùÓĞ·şÎñ
 echo.
 
 pause
 docker-compose down
-echo æ‰€æœ‰æœåŠ¡å·²åœæ­¢
+echo ËùÓĞ·şÎñÒÑÍ£Ö¹
