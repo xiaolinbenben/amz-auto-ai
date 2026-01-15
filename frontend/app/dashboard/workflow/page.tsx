@@ -1,20 +1,30 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { MagicCard } from '@/components/magic/MagicCard'
 import { AnimatedButton } from '@/components/magic/AnimatedButton'
 import { motion } from 'framer-motion'
-import { Play, Plus, Settings, ChevronRight, Workflow as WorkflowIcon } from 'lucide-react'
+import { Plus, Play, Pause, Settings, Trash2, ChevronRight, Edit, Workflow as WorkflowIcon } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface Workflow {
   id: string
   name: string
   description: string
-  status: 'active' | 'inactive'
+  status: 'active' | 'inactive' | 'running'
   lastRun: string
+  createdAt: string
+  nodeCount: number
 }
 
-export default function WorkflowPage() {
+export default function WorkflowListPage() {
+  const router = useRouter()
   const [workflows, setWorkflows] = useState<Workflow[]>([
     {
       id: '1',
@@ -22,124 +32,239 @@ export default function WorkflowPage() {
       description: '从 Amazon 抓取商品信息并生成优化建议',
       status: 'active',
       lastRun: '10 分钟前',
+      createdAt: '2026-01-15',
+      nodeCount: 5,
     },
     {
       id: '2',
       name: 'Listing 优化生成',
       description: '基于抓取数据生成优化的标题和 Bullet Points',
-      status: 'active',
+      status: 'inactive',
       lastRun: '1 小时前',
+      createdAt: '2026-01-14',
+      nodeCount: 8,
+    },
+    {
+      id: '3',
+      name: '关键词分析工作流',
+      description: '分析商品关键词并生成优化建议',
+      status: 'running',
+      lastRun: '30 分钟前',
+      createdAt: '2026-01-13',
+      nodeCount: 6,
     },
   ])
 
-  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(workflows[0])
+  const getStatusColor = (status: Workflow['status']) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+      case 'running':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+      case 'inactive':
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+      default:
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+    }
+  }
+
+  const getStatusText = (status: Workflow['status']) => {
+    switch (status) {
+      case 'active':
+        return '活跃'
+      case 'running':
+        return '运行中'
+      case 'inactive':
+        return '已停止'
+      default:
+        return '未知'
+    }
+  }
+
+  const handleEditWorkflow = (id: string) => {
+    router.push(`/dashboard/workflow/${id}`)
+  }
+
+  const handleCreateWorkflow = () => {
+    // 创建新工作流后跳转到编辑器
+    const newId = `${Date.now()}`
+    router.push(`/dashboard/workflow/${newId}`)
+  }
+
+  const handleDeleteWorkflow = (id: string) => {
+    if (confirm('确定要删除这个工作流吗？')) {
+      setWorkflows(workflows.filter(w => w.id !== id))
+    }
+  }
+
+  const handleToggleStatus = (id: string) => {
+    setWorkflows(workflows.map(w =>
+      w.id === id
+        ? { ...w, status: w.status === 'active' ? 'inactive' : 'active' }
+        : w
+    ))
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* 页面标题 */}
+      {/* 页面标题和操作 */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            工作流编排
+            工作流管理
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            管理和运行您的 AI 工作流
+            管理和配置您的 AI 工作流
           </p>
         </div>
-        <AnimatedButton className="bg-gradient-to-r from-blue-600 to-purple-600">
+        <AnimatedButton
+          className="bg-gradient-to-r from-blue-600 to-purple-600"
+          onClick={handleCreateWorkflow}
+        >
           <Plus className="mr-2 h-4 w-4" />
           新建工作流
         </AnimatedButton>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 左侧：工作流列表 */}
-        <div className="lg:col-span-1 space-y-4">
-          <h2 className="text-lg font-semibold flex items-center">
-            <WorkflowIcon className="mr-2 h-5 w-5" />
-            工作流列表
-          </h2>
+      {/* 工作流统计卡片 */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[
+          { label: '总工作流', value: workflows.length, icon: WorkflowIcon, color: 'from-blue-500 to-cyan-500' },
+          { label: '运行中', value: workflows.filter(w => w.status === 'running').length, icon: Play, color: 'from-green-500 to-emerald-500' },
+          { label: '活跃', value: workflows.filter(w => w.status === 'active').length, icon: WorkflowIcon, color: 'from-purple-500 to-pink-500' },
+          { label: '已停止', value: workflows.filter(w => w.status === 'inactive').length, icon: Pause, color: 'from-gray-500 to-slate-500' },
+        ].map((stat, index) => (
+          <MagicCard
+            key={stat.label}
+            delay={index * 0.1}
+            className="p-6 hover:shadow-lg"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  {stat.label}
+                </p>
+                <p className="text-3xl font-bold">{stat.value}</p>
+              </div>
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white`}>
+                <stat.icon className="h-6 w-6" />
+              </div>
+            </div>
+          </MagicCard>
+        ))}
+      </div>
+
+      {/* 工作流列表 */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold flex items-center">
+          <WorkflowIcon className="mr-2 h-5 w-5" />
+          工作流列表 ({workflows.length})
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {workflows.map((workflow, index) => (
             <MagicCard
               key={workflow.id}
               delay={index * 0.1}
-              className={`p-4 cursor-pointer transition-all ${
-                selectedWorkflow?.id === workflow.id
-                  ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                  : 'hover:shadow-lg'
-              }`}
-              onClick={() => setSelectedWorkflow(workflow)}
+              className="group p-6 hover:shadow-2xl transition-all cursor-pointer"
+              onClick={() => handleEditWorkflow(workflow.id)}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-1">{workflow.name}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {workflow.description}
-                  </p>
-                  <div className="flex items-center mt-2 space-x-2">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        workflow.status === 'active'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                      }`}
-                    >
-                      {workflow.status === 'active' ? '运行中' : '已停止'}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {workflow.lastRun}
-                    </span>
-                  </div>
+              {/* 卡片头部 */}
+              <div className="flex items-start justify-between mb-4">
+                <div className={`text-xs px-3 py-1 rounded-full ${getStatusColor(workflow.status)}`}>
+                  {getStatusText(workflow.status)}
                 </div>
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                    >
+                      <Settings className="h-4 w-4 text-gray-500" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={(e) => {
+                      e.stopPropagation()
+                      handleEditWorkflow(workflow.id)
+                    }}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      编辑
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => {
+                      e.stopPropagation()
+                      handleToggleStatus(workflow.id)
+                    }}>
+                      {workflow.status === 'active' ? (
+                        <>
+                          <Pause className="mr-2 h-4 w-4" />
+                          停止
+                        </>
+                      ) : (
+                        <>
+                          <Play className="mr-2 h-4 w-4" />
+                          启动
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteWorkflow(workflow.id)
+                      }}
+                      className="text-red-600"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      删除
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* 卡片内容 */}
+              <div className="space-y-3">
+                <h3 className="text-xl font-bold group-hover:text-blue-600 transition-colors">
+                  {workflow.name}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                  {workflow.description}
+                </p>
+
+                <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center space-x-1">
+                    <WorkflowIcon className="h-4 w-4" />
+                    <span>{workflow.nodeCount} 个节点</span>
+                  </div>
+                  <div>•</div>
+                  <div>最后运行: {workflow.lastRun}</div>
+                </div>
+              </div>
+
+              {/* 卡片底部 */}
+              <div className="mt-4 pt-4 border-t flex items-center justify-between">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  创建于 {workflow.createdAt}
+                </span>
+                <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
               </div>
             </MagicCard>
           ))}
         </div>
 
-        {/* 右侧：Dify 工作流编辑器 */}
-        <div className="lg:col-span-2">
-          <MagicCard className="h-full min-h-[600px]">
-            <div className="border-b p-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold">{selectedWorkflow?.name}</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {selectedWorkflow?.description}
-                </p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <AnimatedButton size="sm" variant="outline">
-                  <Settings className="mr-2 h-4 w-4" />
-                  配置
-                </AnimatedButton>
-                <AnimatedButton size="sm" className="bg-gradient-to-r from-green-600 to-emerald-600">
-                  <Play className="mr-2 h-4 w-4" />
-                  运行
-                </AnimatedButton>
-              </div>
-            </div>
-
-            {/* Dify 工作流编辑器嵌入 */}
-            <div className="p-4 h-[500px] bg-gray-50 dark:bg-gray-900 rounded-lg flex items-center justify-center">
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center">
-                  <WorkflowIcon className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Dify 工作流编辑器</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    在此处编排和配置您的 AI 工作流
-                  </p>
-                </div>
-                <div className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
-                  <p>• 拖拽节点创建工作流</p>
-                  <p>• 连接节点定义数据流</p>
-                  <p>• 配置参数和触发条件</p>
-                </div>
-              </div>
-            </div>
+        {/* 空状态 */}
+        {workflows.length === 0 && (
+          <MagicCard className="p-12 text-center">
+            <WorkflowIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">暂无工作流</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              创建您的第一个 AI 工作流开始使用
+            </p>
+            <AnimatedButton onClick={handleCreateWorkflow}>
+              <Plus className="mr-2 h-4 w-4" />
+              创建工作流
+            </AnimatedButton>
           </MagicCard>
-        </div>
+        )}
       </div>
     </div>
   )
