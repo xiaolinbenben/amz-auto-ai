@@ -5,19 +5,12 @@ AI驱动的亚马逊电商优化工具，基于用户评价、图片和市场数
 ## 🌟 特性
 
 - 🤖 **Dify AI 集成** - 集成 Dify AI 平台，使用原生工作流编辑器
-  - 在 Dify 原生界面中可视化编排 AI 工作流
-  - 支持复杂的 AI 节点连接和配置
-  - 实时预览和调试工作流
-  - 无缝集成 AI 模型（GPT-4、Claude 等）
 - 📊 **应用管理** - 集中管理所有 Dify AI 应用
-  - 查看工作流、聊天机器人等应用类型
-  - 统计应用数量和类型分布
-  - 一键跳转到 Dify 原生编辑器
 - 🔐 **安全认证** - JWT 用户认证系统
 - 🎨 **现代 UI** - Magic UI 风格动画，流畅的用户体验
 - 📱 **响应式设计** - 支持桌面和移动设备
 - ⚡ **高性能** - Redis 缓存 + PostgreSQL 持久化
-- 🔗 **API 集成** - 后端提供 Dify API 代理，安全连接 Dify
+- 🛡️ **管理员后台** - 系统管理与监控
 
 ## 🚀 快速开始
 
@@ -29,11 +22,6 @@ AI驱动的亚马逊电商优化工具，基于用户评价、图片和市场数
 start.bat
 ```
 
-这将自动：
-1. 启动 PostgreSQL 和 Redis (Docker)
-2. 启动 FastAPI 后端服务
-3. 启动 Next.js 前端服务
-
 停止所有服务：
 
 ```bash
@@ -42,82 +30,15 @@ stop.bat
 
 ### 手动启动
 
-详细说明请查看 [PROJECT_SETUP.md](./PROJECT_SETUP.md)
+#### 1. 启动数据库
 
-## 📖 使用说明
-
-### Dify 工作流管理
-
-1. **配置 Dify**
-   - 在 `frontend/.env` 中设置 Dify URL（默认：`http://localhost:3000`）
-   - 在 `backend/app/config.py` 中配置 Dify API 密钥
-   - 确保 Dify 服务已启动并可访问
-
-2. **注册账户** - 访问 http://localhost:3000/auth/register
-
-3. **登录系统** - 使用注册的邮箱和密码登录
-
-4. **管理 Dify 应用**
-   - 进入工作流页面，自动同步所有 Dify 应用
-   - 查看应用统计（总数、工作流、聊天应用）
-   - 点击应用卡片，在新标签页打开 Dify 原生编辑器
-   - 在 Dify 中编辑工作流，使用可视化节点编辑器
-   - 点击"打开 Dify"按钮访问完整的 Dify 界面
-
-5. **创建新工作流**
-   - 点击"在 Dify 中创建"按钮
-   - 跳转到 Dify 应用创建页面
-   - 使用 Dify 原生工具创建 AI 工作流
-
-6. **工作流开发**
-   - 在 Dify 原生编辑器中使用节点拖拽编排
-   - 配置 AI 模型（GPT-4、Claude 等）
-   - 添加数据处理、条件判断、循环节点
-   - 实时测试和调试工作流
-   - 保存后自动同步到本系统
-
-## 🏗️ 技术架构
-
-```
-┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-│  Next.js    │◄────►│  FastAPI    │◄────►│  PostgreSQL │
-│  (Frontend) │      │ (Backend)   │      │  Database   │
-└─────────────┘      └─────────────┘      └─────────────┘
-                            │                     │
-                            ▼                     ▼
-                     ┌──────────┐         ┌──────────┐
-                     │  Redis   │         │   Dify   │
-                     │ (Cache)  │         │   API    │
-                     └──────────┘         └──────────┘
+```bash
+docker-compose up -d
 ```
 
-### 技术栈
+#### 2. 配置后端
 
-- **前端**: Next.js 14, TypeScript, Tailwind CSS, Radix UI, Framer Motion
-- **后端**: FastAPI, SQLAlchemy, PostgreSQL, Redis
-- **AI**: Dify Platform
-- **容器**: Docker, Docker Compose
-
-## 📂 项目结构
-
-```
-amz-auto-ai/
-├── frontend/          # Next.js 前端应用
-│   ├── app/          # 页面和路由
-│   ├── components/   # React 组件
-│   └── lib/          # 工具函数
-├── backend/          # FastAPI 后端应用
-│   └── app/          # API 和配置
-├── docker-compose.yml # 数据库编排
-├── start.bat         # Windows 启动脚本
-└── stop.bat          # Windows 停止脚本
-```
-
-## 🔧 配置说明
-
-### 环境变量
-
-后端配置文件 `backend/.env`:
+编辑 `backend/.env` 文件：
 
 ```env
 DATABASE_URL=postgresql://amz_user:amz_password@localhost:5433/amz_auto_ai
@@ -126,16 +47,97 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REDIS_URL=redis://localhost:6379/0
 DIFY_API_KEY=your-dify-api-key
-DIFY_API_URL=https://api.dify.ai/v1
+DIFY_API_URL=http://localhost:5001/v1
+DIFY_FRONTEND_URL=http://localhost:3001
 ```
 
-## 📊 数据库设计
+#### 3. 启动后端
 
-### 用户表 (users)
-- id, email, username, hashed_password, created_at
+```bash
+cd backend
+pip install -r requirements.txt
+python run.py
+```
 
-### 工作流历史表 (workflow_history)
-- id, user_id, name, input_data, output_data, status, created_at
+后端服务将在 `http://localhost:8000` 启动
+
+#### 4. 启动前端
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+前端服务将在 `http://localhost:3000` 启动
+
+## 📖 使用说明
+
+### Dify 工作流管理
+
+1. **配置 Dify**
+   - 在 `frontend/.env` 中设置 `NEXT_PUBLIC_DIFY_URL=http://localhost:3000`
+   - 在 `backend/.env` 中配置 Dify API 密钥
+   - 确保 Dify 服务已启动并可访问
+
+2. **注册账户** - 访问 http://localhost:3000/auth/register
+
+3. **登录系统** - 使用注册的邮箱和密码登录
+
+4. **管理 Dify 应用**
+   - 进入工作流页面，自动同步所有 Dify 应用
+   - 点击"创建"按钮创建新应用
+   - 点击应用卡片，在新标签页打开 Dify 原生编辑器
+
+## � 项目结构
+
+```
+amz-auto-ai/
+├── frontend/          # Next.js 前端应用
+│   ├── app/          # 页面和路由
+│   │   ├── auth/     # 认证页面
+│   │   ├── dashboard/ # 仪表盘、工作流、设置、管理员
+│   │   └── ...
+│   ├── components/   # React 组件
+│   │   ├── ui/       # UI 组件库
+│   │   ├── magic/    # Magic UI 组件
+│   │   └── TopNav.tsx
+│   └── lib/          # 工具函数
+├── backend/          # FastAPI 后端应用
+│   ├── app/          # API 和配置
+│   │   ├── api/      # 路由
+│   │   │   ├── auth.py
+│   │   │   ├── dify.py
+│   │   │   ├── admin.py
+│   │   │   └── ...
+│   │   └── ...
+│   └── .env
+├── dify/            # Dify 集成
+├── docker-compose.yml
+├── start.bat
+└── stop.bat
+```
+
+## 🔧 配置说明
+
+### 环境变量
+
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| DATABASE_URL | PostgreSQL 连接字符串 | - |
+| SECRET_KEY | JWT 密钥 | - |
+| DIFY_API_KEY | Dify API 密钥 | - |
+| DIFY_API_URL | Dify API 地址 | http://localhost:5001/v1 |
+| DIFY_FRONTEND_URL | Dify 前端地址 | http://localhost:3001 |
+
+## 📊 服务端口
+
+- AMZ Auto AI 前端: http://localhost:3000
+- AMZ Auto AI 后端: http://localhost:8000
+- Dify 界面: http://localhost:3001
+- Dify API: http://localhost:5001
+- PostgreSQL: localhost:5433
+- Redis: localhost:6379
 
 ## 🔐 安全性
 
@@ -145,23 +147,47 @@ DIFY_API_URL=https://api.dify.ai/v1
 - SQL 注入防护 (ORM)
 - XSS 防护 (React)
 
-## 🚢 部署
+## 📝 功能列表
 
-详细部署指南请参考 [PROJECT_SETUP.md](./PROJECT_SETUP.md)
+### 已实现
+- ✅ 用户注册和登录
+- ✅ JWT 认证
+- ✅ 工作流管理
+- ✅ Dify API 集成
+- ✅ 响应式设计
+- ✅ Magic UI 动画
+- ✅ PostgreSQL 数据持久化
+- ✅ Redis 缓存支持
+- ✅ 管理员后台
 
-## 📝 开发计划
+### 计划中
+- 🔄 更多工作流模板
+- 🔄 数据可视化
+- 🔄 报告导出
+- 🔄 用户权限管理
+- 🔄 多语言支持
 
-- [x] 用户认证系统
-- [x] 工作流执行
-- [x] 历史记录管理
-- [ ] 数据可视化
-- [ ] 报告导出
-- [ ] 多语言支持
-- [ ] 团队协作功能
+## 🐛 常见问题
 
-## 🤝 贡献
+### 端口冲突
 
-欢迎提交 Issue 和 Pull Request！
+修改以下配置：
+- 前端端口：`frontend/package.json`
+- 后端端口：`backend/run.py`
+- 数据库端口：`docker-compose.yml`
+
+### 数据库连接失败
+
+```bash
+docker ps
+docker logs amz-auto-ai-postgres
+```
+
+### Dify API 调用失败
+
+1. 检查 `DIFY_API_KEY` 是否正确
+2. 确认 `DIFY_API_URL` 格式正确
+3. 验证网络连接
 
 ## 📄 许可证
 

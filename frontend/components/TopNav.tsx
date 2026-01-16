@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   X,
+  Shield,
 } from 'lucide-react'
 import { MagicCard } from '@/components/magic/MagicCard'
 import { AnimatedButton } from '@/components/magic/AnimatedButton'
@@ -29,6 +30,7 @@ export default function TopNav() {
   const menuItems = [
     { icon: LayoutDashboard, label: '仪表板', path: '/dashboard' },
     { icon: Workflow, label: '工作流', path: '/dashboard/workflow' },
+    { icon: Shield, label: '管理员', path: '/dashboard/admin' },
     { icon: Settings, label: '设置', path: '/dashboard/settings' },
   ]
 
@@ -63,19 +65,15 @@ export default function TopNav() {
             <motion.div key={item.path} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 variant={isActive(item.path) ? 'default' : 'ghost'}
-                className="relative"
+                className={`relative ${
+                  isActive(item.path) 
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' 
+                    : ''
+                }`}
                 onClick={() => router.push(item.path)}
               >
                 <item.icon className="mr-2 h-4 w-4" />
                 {item.label}
-                {isActive(item.path) && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-blue-600/10 rounded-md"
-                    initial={false}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  />
-                )}
               </Button>
             </motion.div>
           ))}

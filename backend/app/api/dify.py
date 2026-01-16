@@ -138,3 +138,37 @@ async def run_dify_app(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"运行 Dify 应用失败: {str(e)}"
         )
+
+
+@router.post("/dify/apps")
+async def create_dify_app(
+    app_data: Dict[str, Any],
+    current_user: User = Depends(get_current_user)
+):
+    """
+    创建 Dify 应用（工作流或聊天应用）
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{settings.dify_api_url}/apps",
+                json=app_data,
+                headers={
+                    "Authorization": f"Bearer {settings.dify_api_key}",
+                    "Content-Type": "application/json"
+                },
+                timeout=30.0
+            )
+            response.raise_for_status()
+            result = response.json()
+            return result
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Dify API 错误: {e.response.text if e.response else str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"创建 Dify 应用失败: {str(e)}"
+        )

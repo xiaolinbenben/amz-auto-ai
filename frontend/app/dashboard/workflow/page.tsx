@@ -4,14 +4,24 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { MagicCard } from '@/components/magic/MagicCard'
 import { AnimatedButton } from '@/components/magic/AnimatedButton'
-import { motion } from 'framer-motion'
-import { Plus, Settings, ChevronRight, Edit, Workflow as WorkflowIcon, ExternalLink, RefreshCw } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Plus, Settings, Edit, Workflow as WorkflowIcon, ExternalLink, RefreshCw, Loader2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { toast } from 'sonner'
 
 interface DifyApp {
   id: string
@@ -26,6 +36,11 @@ export default function WorkflowListPage() {
   const router = useRouter()
   const [apps, setApps] = useState<DifyApp[]>([])
   const [loading, setLoading] = useState(true)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [newAppName, setNewAppName] = useState('')
+  const [newAppDescription, setNewAppDescription] = useState('')
+  const [newAppMode, setNewAppMode] = useState<'workflow' | 'chatbot'>('workflow')
 
   useEffect(() => {
     fetchDifyApps()
@@ -47,7 +62,6 @@ export default function WorkflowListPage() {
         setApps(data.data || [])
       } else {
         console.error('获取 Dify 应用失败')
-        // 模拟数据用于展示
         setApps([])
       }
     } catch (error) {
@@ -64,10 +78,48 @@ export default function WorkflowListPage() {
     window.open(`${difyUrl}/app/${appId}/workflow`, '_blank')
   }
 
-  const handleCreateApp = () => {
-    // 在新标签页打开 Dify 创建页面
-    const difyUrl = process.env.NEXT_PUBLIC_DIFY_URL || 'http://localhost:3000'
-    window.open(`${difyUrl}/apps`, '_blank')
+  const handleCreateApp = async () => {
+    if (!newAppName.trim()) {
+      toast.error('请输入应用名称')
+      return
+    }
+
+    setIsCreating(true)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('http://localhost:8000/api/dify/apps', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: newAppName,
+          description: newAppDescription,
+          mode: newAppMode,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        toast.success('应用创建成功！')
+        setIsCreateDialogOpen(false)
+        setNewAppName('')
+        setNewAppDescription('')
+        await fetchDifyApps()
+        // 自动跳转到新创建的应用编辑器
+        const difyUrl = process.env.NEXT_PUBLIC_DIFY_URL || 'http://localhost:3000'
+        window.open(`${difyUrl}/app/${data.id}/workflow`, '_blank')
+      } else {
+        const errorData = await response.json()
+        toast.error(`创建失败: ${errorData.detail || '未知错误'}`)
+      }
+    } catch (error) {
+      console.error('创建 Dify 应用失败:', error)
+      toast.error('创建失败，请稍后重试')
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   const handleOpenDifyHome = () => {
@@ -107,10 +159,10 @@ export default function WorkflowListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Dify 工作流管理
+            工作流管理
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            管理您的 Dify AI 应用和工作流
+            管理您的 AI 应用和工作流
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -123,39 +175,12 @@ export default function WorkflowListPage() {
           </AnimatedButton>
           <AnimatedButton
             className="bg-gradient-to-r from-blue-600 to-purple-600"
-            onClick={handleCreateApp}
+            onClick={() => setIsCreateDialogOpen(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
-            在 Dify 中创建
+            创建
           </AnimatedButton>
         </div>
-      </div>
-
-      {/* Dify 统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          { label: '总应用数', value: apps.length, icon: WorkflowIcon, color: 'from-blue-500 to-cyan-500' },
-          { label: '工作流应用', value: apps.filter(a => a.mode === 'workflow').length, icon: WorkflowIcon, color: 'from-purple-500 to-pink-500' },
-          { label: '聊天应用', value: apps.filter(a => a.mode === 'chatbot' || a.mode === 'advanced-chat').length, icon: WorkflowIcon, color: 'from-green-500 to-emerald-500' },
-        ].map((stat, index) => (
-          <MagicCard
-            key={stat.label}
-            delay={index * 0.1}
-            className="p-6 hover:shadow-lg"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                  {stat.label}
-                </p>
-                <p className="text-3xl font-bold">{stat.value}</p>
-              </div>
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-white`}>
-                <stat.icon className="h-6 w-6" />
-              </div>
-            </div>
-          </MagicCard>
-        ))}
       </div>
 
       {/* 应用列表 */}
@@ -163,7 +188,7 @@ export default function WorkflowListPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center">
             <WorkflowIcon className="mr-2 h-5 w-5" />
-            Dify 应用列表 ({apps.length})
+            应用列表 ({apps.length})
           </h2>
         </div>
 
@@ -174,13 +199,13 @@ export default function WorkflowListPage() {
         ) : apps.length === 0 ? (
           <MagicCard className="p-12 text-center">
             <WorkflowIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">暂无 Dify 应用</h3>
+            <h3 className="text-xl font-semibold mb-2">暂无应用</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              在 Dify 中创建您的第一个 AI 工作流应用
+              创建您的第一个 AI 工作流应用
             </p>
-            <AnimatedButton onClick={handleCreateApp}>
+            <AnimatedButton onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              创建 Dify 应用
+              创建应用
             </AnimatedButton>
           </MagicCard>
         ) : (
@@ -232,7 +257,7 @@ export default function WorkflowListPage() {
                     {app.name}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                    {app.description || '暂无描述'}
+                    {app.description || '暂无描述' }
                   </p>
 
                   <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
@@ -276,6 +301,83 @@ export default function WorkflowListPage() {
           </AnimatedButton>
         </div>
       </MagicCard>
+
+      {/* 创建应用对话框 */}
+      <AnimatePresence>
+        {isCreateDialogOpen && (
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>创建应用</DialogTitle>
+                <DialogDescription>
+                  创建一个新的 AI 应用，选择应用类型并填写基本信息
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div>
+                  <Label htmlFor="app-name">应用名称 *</Label>
+                  <input
+                    id="app-name"
+                    type="text"
+                    value={newAppName}
+                    onChange={(e) => setNewAppName(e.target.value)}
+                    className="mt-1 w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="输入应用名称"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="app-description">应用描述</Label>
+                  <textarea
+                    id="app-description"
+                    value={newAppDescription}
+                    onChange={(e) => setNewAppDescription(e.target.value)}
+                    className="mt-1 w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+                    placeholder="输入应用描述（可选）"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="app-mode">应用类型</Label>
+                  <select
+                    id="app-mode"
+                    value={newAppMode}
+                    onChange={(e) => setNewAppMode(e.target.value as 'workflow' | 'chatbot')}
+                    className="mt-1 w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="workflow">工作流</option>
+                    <option value="chatbot">聊天机器人</option>
+                  </select>
+                </div>
+              </div>
+              <DialogFooter>
+                <AnimatedButton
+                  variant="outline"
+                  onClick={() => setIsCreateDialogOpen(false)}
+                  disabled={isCreating}
+                >
+                  取消
+                </AnimatedButton>
+                <AnimatedButton
+                  onClick={handleCreateApp}
+                  disabled={isCreating}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600"
+                >
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      创建中...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" />
+                      创建
+                    </>
+                  )}
+                </AnimatedButton>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
