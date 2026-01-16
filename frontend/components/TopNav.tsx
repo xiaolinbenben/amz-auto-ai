@@ -30,8 +30,8 @@ export default function TopNav() {
   const menuItems = [
     { icon: LayoutDashboard, label: '仪表板', path: '/dashboard' },
     { icon: Workflow, label: '工作流', path: '/dashboard/workflow' },
-    { icon: Shield, label: '管理员', path: '/dashboard/admin' },
     { icon: Settings, label: '设置', path: '/dashboard/settings' },
+    { icon: Shield, label: '管理员后台', path: '/admin' },
   ]
 
   const handleLogout = () => {
@@ -67,7 +67,7 @@ export default function TopNav() {
                 variant={isActive(item.path) ? 'default' : 'ghost'}
                 className={`relative ${
                   isActive(item.path) 
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' 
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
                     : ''
                 }`}
                 onClick={() => router.push(item.path)}
@@ -112,7 +112,11 @@ export default function TopNav() {
                       <Button
                         key={item.path}
                         variant={isActive(item.path) ? 'default' : 'ghost'}
-                        className="w-full justify-start"
+                        className={`w-full justify-start ${
+                          isActive(item.path) 
+                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
+                            : ''
+                        }`}
                         onClick={() => {
                           router.push(item.path)
                           setIsMobileMenuOpen(false)

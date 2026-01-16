@@ -11,6 +11,8 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    is_admin = Column(Integer, default=0, nullable=False)  # 0: 普通用户, 1: 管理员
+    is_active = Column(Integer, default=1, nullable=False)  # 0: 禁用, 1: 激活
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     workflows = relationship("WorkflowHistory", back_populates="user")

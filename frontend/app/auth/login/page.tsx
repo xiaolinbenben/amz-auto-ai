@@ -40,7 +40,7 @@ export default function LoginPage() {
         localStorage.setItem('token', data.access_token)
         localStorage.setItem('user', JSON.stringify(data.user))
         toast.success('登录成功')
-        router.push('/dashboard/workflow')
+        router.push('/dashboard')
       } else {
         toast.error(data.detail || '登录失败')
       }
