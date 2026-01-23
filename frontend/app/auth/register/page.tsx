@@ -3,13 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { Loader2, ExternalLink } from 'lucide-react'
 import { MagicCard } from '@/components/magic/MagicCard'
 import { AnimatedButton } from '@/components/magic/AnimatedButton'
+import { Input } from '@/components/magic/Input'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -66,11 +63,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative">
-      <div className="w-full max-w-md p-8">
-        <MagicCard className="p-8 space-y-6" delay={0.1}>
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+
+      <div className="w-full max-w-md p-8 relative z-10">
+        <MagicCard className="p-8 space-y-6" delay={0.1} gradient>
+          <div className="text-center space-y-3">
+            <h1 className="text-3xl font-bold text-gradient">
               AMZ Auto AI
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
@@ -78,71 +80,63 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">用户名</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="请输入用户名"
-                value={formData.username}
-                onChange={(e) =>
-                  setFormData({ ...formData, username: e.target.value })
-                }
-                required
-                className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <Input
+              id="username"
+              type="text"
+              label="用户名"
+              placeholder="请输入用户名（2-20个字符）"
+              value={formData.username}
+              onChange={(e) =>
+                setFormData({ ...formData, username: e.target.value })
+              }
+              required
+              minLength={2}
+              maxLength={20}
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="email">邮箱</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                required
-                className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <Input
+              id="email"
+              type="email"
+              label="邮箱地址"
+              placeholder="请输入您的邮箱地址"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              required
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="password">密码</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="至少6位密码"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                required
-                className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <Input
+              id="password"
+              type="password"
+              label="密码"
+              placeholder="请输入密码（至少6位）"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              required
+              minLength={6}
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">确认密码</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="再次输入密码"
-                value={formData.confirmPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, confirmPassword: e.target.value })
-                }
-                required
-                className="transition-all duration-200 focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <Input
+              id="confirmPassword"
+              type="password"
+              label="确认密码"
+              placeholder="请再次输入密码"
+              value={formData.confirmPassword}
+              onChange={(e) =>
+                setFormData({ ...formData, confirmPassword: e.target.value })
+              }
+              required
+            />
 
             <AnimatedButton
               type="submit"
               loading={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              variant="gradient"
+              className="w-full"
             >
               注册
             </AnimatedButton>

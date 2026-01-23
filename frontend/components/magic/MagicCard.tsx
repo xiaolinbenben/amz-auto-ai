@@ -1,32 +1,44 @@
 'use client'
 
-import { Card } from '@/components/ui/card'
-import { motion } from 'framer-motion'
 import * as React from 'react'
+import { cn } from '@/lib/utils'
 
 interface MagicCardProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode
   hover?: boolean
   delay?: number
+  gradient?: boolean
 }
 
 export const MagicCard = React.forwardRef<HTMLDivElement, MagicCardProps>(
-  ({ children, hover = true, delay = 0, className, ...props }, ref) => {
+  ({ children, hover = true, delay = 0, gradient = false, className, ...props }, ref) => {
+    const [isVisible, setIsVisible] = React.useState(false)
+
+    React.useEffect(() => {
+      const timer = setTimeout(() => setIsVisible(true), delay * 1000)
+      return () => clearTimeout(timer)
+    }, [delay])
+
     return (
-      <motion.div
+      <div
         ref={ref}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay }}
-        whileHover={hover ? {
-          scale: 1.02,
-          boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-        } : undefined}
+        className={cn(
+          'rounded-xl',
+          'bg-white dark:bg-gray-800',
+          gradient
+            ? 'bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-900'
+            : '',
+          'border-2 border-gray-200 dark:border-gray-700',
+          'shadow-lg',
+          'transition-all duration-500 ease-out',
+          hover && 'hover:shadow-2xl hover:scale-[1.02] hover:border-blue-200 dark:hover:border-blue-800',
+          !isVisible && 'opacity-0 translate-y-8',
+          isVisible && 'opacity-100 translate-y-0',
+          className
+        )}
+        {...props}
       >
-        <Card className={className} {...props}>
-          {children}
-        </Card>
-      </motion.div>
+        {children}
+      </div>
     )
   }
 )

@@ -19,9 +19,7 @@ AI驱动的亚马逊电商优化工具，基于用户评价、图片和市场数
 - **Next.js 14** - React 框架
 - **TypeScript** - 类型安全
 - **Tailwind CSS** - 样式框架
-- **shadcn/ui** - 现代化 UI 组件库（基于 Radix UI）
-- **Magic UI** - 高级动画和交互组件
-- **Framer Motion** - 流畅的动画效果
+- **Magic UI** - 高级动画和UI交互组件
 - **Zustand** - 状态管理
 - **Axios** - HTTP 客户端
 
@@ -105,7 +103,7 @@ npm run dev
 
 前端服务将在 `http://localhost:3000` 启动
 
-## � Dify 配置
+## 🥇 Dify 配置
 
 ### 获取 API Key
 
@@ -150,7 +148,7 @@ npm run dev
    - 点击应用卡片打开编辑器
    - 使用下拉菜单访问更多选项
 
-## � 服务架构
+## 📊 服务架构
 
 ### 服务端口
 
@@ -172,7 +170,7 @@ npm run dev
 - AMZ 后端可以通过 `dify-api:5001` 访问 Dify API
 - 前端通过 `http://localhost:5001` 访问 Dify API
 
-## �📂 项目结构
+## 📂 项目结构
 
 ```
 amz-auto-ai/
@@ -228,7 +226,7 @@ alembic revision --autogenerate -m "description"
 alembic upgrade head
 ```
 
-## � 常见问题
+## 📖 常见问题
 
 ### 端口冲突
 
@@ -282,7 +280,7 @@ docker logs amz-auto-ai-dify-postgres
 - 🔄 用户权限管理
 - 🔄 多语言支持
 
-## � 安全性
+## 🔒 安全性
 
 - 密码使用 bcrypt 加密存储
 - JWT Token 认证
@@ -290,7 +288,7 @@ docker logs amz-auto-ai-dify-postgres
 - SQL 注入防护 (ORM)
 - XSS 防护 (React)
 
-## � 部署
+## 🚀 部署
 
 ### 使用 Docker
 
