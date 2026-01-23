@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
@@ -56,7 +56,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
 
 @router.post("/register", response_model=Token)
-async def register(user: UserCreate, db: Session = Depends(get_db)):
+async def register(user: UserCreate, response: Response, db: Session = Depends(get_db)):
     db_user = db.query(UserModel).filter(UserModel.email == user.email).first()
     if db_user:
         raise HTTPException(
@@ -72,16 +72,32 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
         )
 
     hashed_password = get_password_hash(user.password)
+    
+    # 检查是否为第一个注册用户
+    user_count = db.query(UserModel).count()
+    is_admin = 1 if user_count == 0 else 0
+    
     db_user = UserModel(
         email=user.email,
         username=user.username,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        is_admin=is_admin
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
 
     access_token = create_access_token(data={"sub": user.email})
+    
+    # 设置 SSO Cookie
+    response.set_cookie(
+        key="access_token",
+        value=f"Bearer {access_token}",
+        httponly=True,
+        max_age=settings.access_token_expire_minutes * 60,
+        samesite="lax",
+    )
+    
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -90,7 +106,7 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
+async def login(user_credentials: UserLogin, response: Response, db: Session = Depends(get_db)):
     user = db.query(UserModel).filter(UserModel.email == user_credentials.email).first()
     if not user or not verify_password(user_credentials.password, user.hashed_password):
         raise HTTPException(
@@ -100,6 +116,16 @@ async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
         )
 
     access_token = create_access_token(data={"sub": user.email})
+    
+    # 设置 SSO Cookie
+    response.set_cookie(
+        key="access_token",
+        value=f"Bearer {access_token}",
+        httponly=True,
+        max_age=settings.access_token_expire_minutes * 60,
+        samesite="lax",
+    )
+    
     return {
         "access_token": access_token,
         "token_type": "bearer",

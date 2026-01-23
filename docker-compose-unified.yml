@@ -120,6 +120,7 @@ volumes:
   dify_postgres_data:
   dify_redis_data:
   dify_app_storage:
+  dify_web_app:
   dify_sandbox_dependencies:
   dify_sandbox_conf:
   dify_plugin_daemon:
@@ -164,6 +165,8 @@ services:
   dify-init:
     image: busybox:latest
     container_name: amz-auto-ai-dify-init
+    profiles:
+      - init
     command:
       - sh
       - -c
@@ -207,13 +210,13 @@ services:
       OIDC_TOKEN_ENDPOINT: http://host.docker.internal:8001/api/oauth/token
       OIDC_USER_INFO_ENDPOINT: http://host.docker.internal:8001/api/oauth/userinfo
       OIDC_JWKS_URI: http://host.docker.internal:8001/api/oauth/jwks
-      OIDC_REDIRECT_URI: http://localhost:3001/console/api/oauth/callback/oidc
+      OIDC_REDIRECT_URI: http://localhost:4080/console/api/oauth/callback/oidc
       # Important: Allow host access
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      dify-init:
-        condition: service_completed_successfully
+      # dify-init:
+      #   condition: service_completed_successfully
       dify-postgres:
         condition: service_healthy
       dify-redis:
@@ -240,8 +243,8 @@ services:
       PLUGIN_MAX_PACKAGE_SIZE: ${PLUGIN_MAX_PACKAGE_SIZE:-52428800}
       INNER_API_KEY_FOR_PLUGIN: ${PLUGIN_DIFY_INNER_API_KEY:-QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1}
     depends_on:
-      dify-init:
-        condition: service_completed_successfully
+      # dify-init:
+      #   condition: service_completed_successfully
       dify-postgres:
         condition: service_healthy
       dify-redis:
@@ -261,8 +264,8 @@ services:
       <<: *shared-api-worker-env
       MODE: beat
     depends_on:
-      dify-init:
-        condition: service_completed_successfully
+      # dify-init:
+      #   condition: service_completed_successfully
       dify-postgres:
         condition: service_healthy
       dify-redis:
@@ -276,8 +279,8 @@ services:
     container_name: amz-auto-ai-dify-web
     restart: always
     environment:
-      CONSOLE_API_URL: ${CONSOLE_API_URL:-}
-      APP_API_URL: ${APP_API_URL:-}
+      CONSOLE_API_URL: ${CONSOLE_API_URL:-http://localhost:5001}
+      APP_API_URL: ${APP_API_URL:-http://localhost:5001}
       AMPLITUDE_API_KEY: ${AMPLITUDE_API_KEY:-}
       NEXT_PUBLIC_COOKIE_DOMAIN: ${NEXT_PUBLIC_COOKIE_DOMAIN:-}
       SENTRY_DSN: ${WEB_SENTRY_DSN:-}
@@ -302,7 +305,7 @@ services:
     depends_on:
       - dify-api
     ports:
-      - "3001:3000"
+      - "4080:3000"
     networks:
       - amz-network
 

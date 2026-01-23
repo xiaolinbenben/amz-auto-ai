@@ -40,6 +40,7 @@ async def jwks():
 
 @router.get("/oauth/authorize")
 async def authorize(
+    request: Request,
     response_type: str,
     client_id: str,
     redirect_uri: str,
@@ -47,6 +48,7 @@ async def authorize(
     state: str = None
 ):
     # 简化版：直接重定向回 Dify，附带一个临时 code
+    login_url = f"http://localhost:4070/auth/login?redirect={request.url}"
     # 实际生产环境应该显示授权页面，用户点击同意后再跳转
     # 这里为了演示 SSO，假设用户已登录 (实际需要校验 session)
     
@@ -95,7 +97,7 @@ async def token(
     id_token = jwt.encode({"alg": "HS256", "kid": "1"}, id_token_payload, JWK_KEY)
     
     return {
-        "access_token": create_access_token({"sub": user.username}),
+        "access_token": create_access_token({"sub": user.email}),
         "token_type": "Bearer",
         "expires_in": 3600,
         "id_token": id_token.decode('utf-8')

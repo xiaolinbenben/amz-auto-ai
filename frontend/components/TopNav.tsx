@@ -13,6 +13,7 @@ import {
   Shield,
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/magic/Sheet'
+import { cn } from '@/lib/utils'
 
 export default function TopNav() {
   const router = useRouter()
@@ -28,7 +29,6 @@ export default function TopNav() {
     { icon: LayoutDashboard, label: '仪表板', path: '/dashboard' },
     { icon: Workflow, label: '工作流', path: '/dashboard/workflow' },
     { icon: Settings, label: '设置', path: '/dashboard/settings' },
-    { icon: Shield, label: '管理员后台', path: '/admin' },
   ]
 
   const handleLogout = () => {
@@ -134,6 +134,6 @@ export default function TopNav() {
   )
 }
 
-function cn(...classes: (string | boolean | undefined | null)[]) {
-  return classes.filter(Boolean).join(' ')
-}
+
+// Removed duplicate cn function
+

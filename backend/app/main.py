@@ -32,6 +32,17 @@ async def root():
     return {"message": "AMZ Auto AI API is running"}
 
 
+from sqlalchemy import text
+from app.database import engine, Base, SessionLocal
+
+# ... imports ...
+
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "database": str(e)}

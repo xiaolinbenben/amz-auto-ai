@@ -68,6 +68,9 @@ export default function AdminPage() {
       if (error.response?.status === 403) {
         toast.error('无权访问管理员后台')
         router.push('/dashboard')
+      } else if (error.response?.status === 401) {
+        toast.error('登录已过期')
+        router.push('/auth/login')
       } else {
         toast.error('验证管理员权限失败')
       }

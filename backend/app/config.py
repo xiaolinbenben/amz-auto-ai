@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     redis_url: str
     dify_api_key: str
     dify_api_url: str
-    dify_frontend_url: str = "http://localhost:3001"
+    dify_frontend_url: str = "http://localhost:4080"
     
     # Dify Admin Authentication (for Console API access)
     dify_admin_email: str = "admin@dify.ai"

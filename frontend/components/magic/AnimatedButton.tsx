@@ -59,26 +59,18 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
         {children}
         {ripples.map((ripple) => (
           <span
-            key={ripple.id}
-            className="absolute rounded-full bg-white/30 animate-ping"
-            style={{
-              left: ripple.x,
-              top: ripple.y,
-              width: '100px',
-              height: '100px',
-              transform: 'translate(-50%, -50%)',
-              animation: 'ripple 0.6s linear'
-            }}
-          />
+          key={ripple.id}
+          className="absolute rounded-full bg-white/30 animate-ping"
+          style={{
+            left: ripple.x,
+            top: ripple.y,
+            width: '100px',
+            height: '100px',
+            transform: 'translate(-50%, -50%)',
+            animationDuration: '0.6s'
+          }}
+        />
         ))}
-        <style jsx>{`
-          @keyframes ripple {
-            to {
-              transform: translate(-50%, -50%) scale(4);
-              opacity: 0;
-            }
-          }
-        `}</style>
       </button>
     )
   }

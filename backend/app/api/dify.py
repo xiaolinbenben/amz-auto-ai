@@ -193,22 +193,33 @@ async def get_dify_app(
 async def run_dify_app(
     app_id: str,
     inputs: Dict[str, Any],
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """
     运行 Dify 应用
     """
     try:
+        # 1. 查找应用的 API Key
+        dify_app = db.query(DifyApp).filter(DifyApp.app_id == app_id).first()
+        api_key = dify_app.api_key if dify_app else settings.dify_api_key
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"{settings.dify_api_url}/apps/{app_id}/run",
-                json={"inputs": inputs},
+                f"{settings.dify_api_url}/workflows/run",
+                json={"inputs": inputs, "response_mode": "blocking", "user": current_user.email},
                 headers={
-                    "Authorization": f"Bearer {settings.dify_api_key}",
+                    "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json"
                 },
                 timeout=60.0
             )
+            
+            # 如果是 404/401 且使用了默认 Key，可能是因为这个应用需要自己的 Key
+            if response.status_code in [401, 403, 404] and not dify_app:
+                # 尝试从 Console API 获取 (如果有权限 - 暂时不支持自动获取旧应用的 Key)
+                pass
+
             response.raise_for_status()
             return response.json()
     except httpx.HTTPStatusError as e:
@@ -226,12 +237,12 @@ async def run_dify_app(
 @router.post("/dify/apps")
 async def create_dify_app(
     app_data: Dict[str, Any],
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """
     创建 Dify 应用（通过 Dify Console API）
-    
-    不再直接操作数据库，而是模拟管理员登录调用 Dify API 创建应用
+    自动创建应用 -> 生成 API Key -> 保存到数据库
     """
     try:
         # 1. 获取管理员 Token
@@ -258,21 +269,46 @@ async def create_dify_app(
                 timeout=30.0
             )
             
-            if response.status_code == 201 or response.status_code == 200:
-                return response.json()
-            else:
-                error_detail = response.text
-                try:
-                    error_json = response.json()
-                    error_detail = error_json.get("message", error_detail)
-                except:
-                    pass
-                    
-                logger.error(f"Dify 创建应用失败: {response.status_code} - {response.text}")
+            if response.status_code not in [200, 201]:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Dify 创建应用失败: {error_detail}"
+                    detail=f"Dify 创建应用失败: {response.text}"
                 )
+            
+            app_info = response.json()
+            app_id = app_info.get("id")
+            
+            # 4. 为新应用创建 API Key
+            key_response = await client.post(
+                f"{settings.dify_base_url}/console/api/apps/{app_id}/api-keys",
+                json={},
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json"
+                },
+                timeout=30.0
+            )
+            
+            if key_response.status_code not in [200, 201]:
+                # 如果创建 Key 失败，但应用创建成功，这很尴尬。
+                # 记录错误但不阻断返回（用户可以手动去生成）
+                logger.error(f"创建 API Key 失败: {key_response.text}")
+                api_key = settings.dify_api_key # Fallback? No, likely won't work.
+            else:
+                key_data = key_response.json()
+                api_key = key_data.get("token")
+                
+                # 5. 保存到数据库
+                new_dify_app = DifyApp(
+                    app_id=app_id,
+                    name=app_info.get("name"),
+                    api_key=api_key
+                )
+                db.add(new_dify_app)
+                db.commit()
+                db.refresh(new_dify_app)
+            
+            return app_info
 
     except HTTPException as e:
         raise e

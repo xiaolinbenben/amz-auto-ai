@@ -69,7 +69,7 @@ export default function WorkflowListPage() {
   }
 
   const handleOpenDify = (appId: string) => {
-    const difyUrl = process.env.NEXT_PUBLIC_DIFY_URL || 'http://localhost:3001'
+    const difyUrl = process.env.NEXT_PUBLIC_DIFY_URL || 'http://localhost:4080'
     window.open(`${difyUrl}/app/${appId}/workflow`, '_blank')
   }
 
@@ -329,24 +329,6 @@ export default function WorkflowListPage() {
           )}
         </div>
 
-        <MagicCard className="p-6 mt-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20" delay={0.2}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">直接访问 Dify</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                点击下方按钮打开 Dify 完整界面，在原生环境中管理所有工作流
-              </p>
-            </div>
-            <AnimatedButton
-              onClick={handleOpenDifyHome}
-              variant="outline"
-            >
-              <ExternalLink className="mr-2 h-4 w-4" />
-              打开 Dify
-            </AnimatedButton>
-          </div>
-        </MagicCard>
-
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -355,7 +337,7 @@ export default function WorkflowListPage() {
                 创建一个新的 AI 应用，选择应用类型并填写基本信息
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="space-y-6 py-6">
               <Input
                 id="app-name"
                 label="应用名称 *"
@@ -373,8 +355,8 @@ export default function WorkflowListPage() {
                 className="min-h-[100px]"
                 disabled={isCreating}
               />
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">应用类型</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">应用类型</label>
                 <Select
                   value={newAppMode}
                   onValueChange={(value) => setNewAppMode(value as 'workflow' | 'chatbot')}

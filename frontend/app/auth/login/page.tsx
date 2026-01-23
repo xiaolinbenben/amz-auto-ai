@@ -10,6 +10,10 @@ import { Input } from '@/components/magic/Input'
 
 export default function LoginPage() {
   const router = useRouter()
+  // 移到组件内部
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+  const redirect = searchParams?.get('redirect')
+  
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -37,7 +41,12 @@ export default function LoginPage() {
         localStorage.setItem('token', data.access_token)
         localStorage.setItem('user', JSON.stringify(data.user))
         toast.success('登录成功')
-        router.push('/dashboard')
+        
+        if (redirect) {
+          window.location.href = redirect
+        } else {
+          router.push('/dashboard')
+        }
       } else {
         toast.error(data.detail || '登录失败')
       }

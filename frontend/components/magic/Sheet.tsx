@@ -27,24 +27,45 @@ const Sheet = ({ open = false, onOpenChange, children, side = 'right' }: SheetPr
   )
 }
 
-const SheetTrigger = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, onClick, ...props }, ref) => {
-  const { onOpenChange } = React.useContext(SheetContext)
+interface SheetTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean
+}
 
-  return (
-    <button
-      ref={ref}
-      className={cn('inline-flex', className)}
-      onClick={(e) => {
-        onClick?.(e)
-        onOpenChange(true)
-      }}
-      {...props}
-    />
-  )
-})
+const SheetTrigger = React.forwardRef<HTMLButtonElement, SheetTriggerProps>(
+  ({ className, onClick, children, asChild, ...props }, ref) => {
+    const { onOpenChange } = React.useContext(SheetContext)
+    
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      onClick?.(e)
+      onOpenChange(true)
+    }
+
+    if (asChild && React.isValidElement(children)) {
+      return React.cloneElement(children as React.ReactElement<any>, {
+        ref,
+        onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+           // Call the child's original onClick if it exists
+           if (children.props.onClick) {
+             children.props.onClick(e)
+           }
+           handleClick(e)
+        },
+        ...props
+      })
+    }
+
+    return (
+      <button
+        ref={ref}
+        className={cn('inline-flex', className)}
+        onClick={handleClick}
+        {...props}
+      >
+        {children}
+      </button>
+    )
+  }
+)
 SheetTrigger.displayName = 'SheetTrigger'
 
 const SheetContent = React.forwardRef<

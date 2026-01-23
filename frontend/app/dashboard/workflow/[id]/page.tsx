@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { MagicCard } from '@/components/magic/MagicCard'
 import { AnimatedButton } from '@/components/magic/AnimatedButton'
 import { Loader2, ExternalLink, ArrowLeft, RefreshCw, AlertTriangle } from 'lucide-react'
-import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 
 export default function WorkflowEditorPage() {
@@ -15,7 +13,7 @@ export default function WorkflowEditorPage() {
   const [iframeLoading, setIframeLoading] = useState(true)
   const [iframeError, setIframeError] = useState(false)
 
-  const difyUrl = process.env.NEXT_PUBLIC_DIFY_URL || 'http://localhost:3001'
+  const difyUrl = process.env.NEXT_PUBLIC_DIFY_URL || 'http://localhost:4080'
   const workflowUrl = `${difyUrl}/app/${appId}/workflow`
 
   // Handle iframe load event

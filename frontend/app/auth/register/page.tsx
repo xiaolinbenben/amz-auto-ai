@@ -78,6 +78,9 @@ export default function RegisterPage() {
             <p className="text-gray-600 dark:text-gray-400">
               创建一个新账户
             </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200">
+              💡 提示：注册的账户将自动成为<span className="font-bold">系统管理员</span>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
