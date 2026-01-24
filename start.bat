@@ -23,7 +23,8 @@ echo ========================================
 echo Services started!
 echo ========================================
 echo Frontend: http://localhost:4070
-echo Backend:  http://localhost:8001
+echo Backend:  http://localhost:8800
 echo Dify UI:  http://localhost:4080
+echo Dify API: http://localhost:5001
 echo.
 pause

@@ -20,9 +20,18 @@ export default function TopNav() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
     setIsVisible(true)
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData))
+      } catch (e) {
+        console.error('Failed to parse user data', e)
+      }
+    }
   }, [])
 
   const menuItems = [
@@ -30,6 +39,10 @@ export default function TopNav() {
     { icon: Workflow, label: '工作流', path: '/dashboard/workflow' },
     { icon: Settings, label: '设置', path: '/dashboard/settings' },
   ]
+
+  if (user?.is_admin === 1) {
+    menuItems.push({ icon: Shield, label: '管理员后台', path: '/admin' })
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('token')

@@ -18,6 +18,7 @@ class UserLogin(BaseModel):
 
 class User(UserBase):
     id: int
+    is_admin: int
     created_at: datetime
 
     class Config:

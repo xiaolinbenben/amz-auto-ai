@@ -46,7 +46,8 @@ export default function WorkflowListPage() {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8001/api/dify/apps', {
+      // Use proxied path to avoid CORS and port issues
+      const response = await fetch('/api/dify/apps', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -69,7 +70,8 @@ export default function WorkflowListPage() {
   }
 
   const handleOpenDify = (appId: string) => {
-    const difyUrl = process.env.NEXT_PUBLIC_DIFY_URL || 'http://localhost:4080'
+    // Dify Web UI runs on port 4080 (via Docker)
+    const difyUrl = 'http://localhost:4080'
     window.open(`${difyUrl}/app/${appId}/workflow`, '_blank')
   }
 
@@ -82,7 +84,8 @@ export default function WorkflowListPage() {
     setIsCreating(true)
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8000/api/dify/apps', {
+      // Use proxied path
+      const response = await fetch('/api/dify/apps', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

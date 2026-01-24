@@ -40,7 +40,7 @@ if not exist "venv" (
 call venv\Scripts\activate
 echo Installing dependencies...
 pip install -r requirements.txt -q
-echo Starting backend server (port 8001)...
+echo Starting backend server (port 8800)...
 start "Backend Server" cmd /k "cd /d "%SCRIPT_DIR%backend" && venv\Scripts\activate && python run.py"
 cd /d "%SCRIPT_DIR%"
 echo [OK] Backend server started
@@ -66,14 +66,14 @@ echo ========================================
 echo.
 echo Frontend: http://localhost:4070
 echo Frontend-admin: http://localhost:4070/admin
-echo Backend:  http://localhost:8001
-echo API Docs: http://localhost:8001/docs
+echo Backend:  http://localhost:8800
+echo API Docs: http://localhost:8800/docs
 echo Dify UI:  http://localhost:4080
 echo Dify API: http://localhost:5001/health
 echo Database AMZ: PostgreSQL (port 5433)
 echo Database Dify: PostgreSQL (port 5434)
-echo Cache AMZ:  Redis (port 6380)
-echo Cache Dify: Redis (port 6381)
+echo Cache AMZ:  Redis (port 6900)
+echo Cache Dify: Redis (port 6901)
 echo.
 echo Press any key to exit this window (Services will keep running)...
 pause >nul

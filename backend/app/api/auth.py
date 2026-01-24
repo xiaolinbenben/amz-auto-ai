@@ -87,6 +87,27 @@ async def register(user: UserCreate, response: Response, db: Session = Depends(g
     db.commit()
     db.refresh(db_user)
 
+    # 如果是管理员，尝试同步初始化 Dify
+    if is_admin == 1:
+        try:
+            async with httpx.AsyncClient() as client:
+                # 调用 Dify 初始化接口
+                response = await client.post(
+                    f"{settings.dify_base_url}/console/api/setup",
+                    json={
+                        "email": user.email,
+                        "name": user.username,
+                        "password": user.password
+                    },
+                    timeout=10.0
+                )
+                if response.status_code in [200, 201]:
+                    logging.info("Dify admin initialized successfully")
+                else:
+                    logging.warning(f"Dify init failed: {response.status_code} - {response.text}")
+        except Exception as e:
+            logging.error(f"Failed to sync with Dify: {e}")
+
     access_token = create_access_token(data={"sub": user.email})
     
     # 设置 SSO Cookie
@@ -136,3 +157,9 @@ async def login(user_credentials: UserLogin, response: Response, db: Session = D
 @router.get("/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.get("/setup-status")
+async def get_setup_status(db: Session = Depends(get_db)):
+    user_count = db.query(UserModel).count()
+    return {"has_admin": user_count > 0}

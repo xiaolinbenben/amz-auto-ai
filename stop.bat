@@ -25,8 +25,8 @@ if %errorlevel% equ 0 (
 echo.
 echo [2/3] Checking and freeing ports...
 
-REM Port list: 4070 8001 5001 4080 5433 5434 6380 6381
-for %%p in (4070 8001 5001 4080 5433 5434 6380 6381) do (
+REM Port list: 4070 8800 5001 4080 5433 5434 6900 6901
+for %%p in (4070 8800 5001 4080 5433 5434 6900 6901) do (
     for /f "tokens=5" %%a in ('netstat -aon ^| find ":%%p" ^| find "LISTENING"') do (
         taskkill /f /pid %%a >nul 2>&1
         echo [OK] Freed port %%p [PID: %%a]

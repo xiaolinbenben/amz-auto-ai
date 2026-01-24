@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -11,12 +11,23 @@ import { Input } from '@/components/magic/Input'
 export default function RegisterPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [hasAdmin, setHasAdmin] = useState(true) // Default to true to hide hint initially
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     username: '',
   })
+
+  useEffect(() => {
+    // Check if system has admin configured
+    fetch('/api/auth/setup-status')
+      .then((res) => res.json())
+      .then((data) => {
+        setHasAdmin(data.has_admin)
+      })
+      .catch((err) => console.error('Failed to check setup status', err))
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,9 +45,9 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('http://localhost:8001/api/auth/register', {
+      // Use relative path which is proxied
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
-        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -78,9 +89,11 @@ export default function RegisterPage() {
             <p className="text-gray-600 dark:text-gray-400">
               创建一个新账户
             </p>
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200">
-              💡 提示：注册的账户将自动成为<span className="font-bold">系统管理员</span>
-            </div>
+            {!hasAdmin && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200">
+                💡 提示：注册的账户将自动成为<span className="font-bold">系统管理员</span>
+              </div>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

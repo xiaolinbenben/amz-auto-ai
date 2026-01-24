@@ -71,14 +71,14 @@ docker-compose -f docker-compose-unified.yml up -d
 编辑 `backend/.env` 文件：
 
 ```env
-DATABASE_URL=postgresql://amz_user:amz_password@localhost:5433/amz_auto_ai
+DATABASE_URL=postgresql://amz_user:amz_password@localhost:5440/amz_auto_ai
 SECRET_KEY=your-secret-key-change-this-in-production
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
-REDIS_URL=redis://localhost:6380/0
+REDIS_URL=redis://localhost:6900/0
 DIFY_API_KEY=your-dify-api-key
 DIFY_API_URL=http://localhost:5001/v1
-DIFY_FRONTEND_URL=http://localhost:3001
+DIFY_FRONTEND_URL=http://localhost:4080
 ```
 
 #### 3. 启动后端
@@ -91,7 +91,7 @@ pip install -r requirements.txt
 python run.py
 ```
 
-后端服务将在 `http://localhost:8000` 启动，API 文档：`http://localhost:8000/docs`
+后端服务将在 `http://localhost:8800` 启动，API 文档：`http://localhost:8800/docs`
 
 #### 4. 启动前端
 
@@ -101,14 +101,14 @@ npm install
 npm run dev
 ```
 
-前端服务将在 `http://localhost:3000` 启动
+前端服务将在 `http://localhost:4070` 启动
 
 ## 🥇 Dify 配置
 
 ### 获取 API Key
 
 1. 运行 `start.bat` 启动所有服务
-2. 打开 http://localhost:3001
+2. 打开 http://localhost:4080
 3. 注册/登录账号（首次访问需要设置管理员账号）
 4. 创建应用
 5. 在应用设置中获取 API Key
@@ -154,14 +154,14 @@ npm run dev
 
 | 服务 | 地址 | 说明 |
 |------|------|------|
-| AMZ Auto AI 前端 | http://localhost:3000 | Next.js 应用 |
-| AMZ Auto AI 后端 | http://localhost:8000 | FastAPI 服务 |
-| Dify 界面 | http://localhost:3001 | Dify Web UI |
+| AMZ Auto AI 前端 | http://localhost:4070 | Next.js 应用 |
+| AMZ Auto AI 后端 | http://localhost:8800 | FastAPI 服务 |
+| Dify 界面 | http://localhost:4080 | Dify Web UI |
 | Dify API | http://localhost:5001 | Dify API 服务 |
 | AMZ PostgreSQL | localhost:5433 | 应用数据库 |
-| AMZ Redis | localhost:6380 | 缓存服务 |
+| AMZ Redis | localhost:6390 | 缓存服务 |
 | Dify PostgreSQL | localhost:5434 | Dify 数据库 |
-| Dify Redis | localhost:6381 | Dify 缓存服务 |
+| Dify Redis | localhost:6391 | Dify 缓存服务 |
 
 ### 网络配置
 

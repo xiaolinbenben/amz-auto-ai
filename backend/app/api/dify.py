@@ -10,6 +10,7 @@ from app.database import get_db
 from app.config import settings
 from app.api.auth import get_current_user
 from app.schemas.user import User
+from app.models import DifyApp
 
 # 配置日志
 logger = logging.getLogger(__name__)
